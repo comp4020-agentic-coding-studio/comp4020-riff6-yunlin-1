@@ -1,4 +1,9 @@
 ---
+# Set explicitly: the theme's default-layout remark plugin derives this path
+# with node:path.relative, which emits backslashes on Windows and leaves the
+# page with no layout at all --- no <html>, no theme CSS. Naming it here makes
+# the plugin stand down, and the same page renders on every platform.
+layout: ../../layouts/PageLayout.astro
 title: Policies and support
 description:
   The course-wide rules for late work, extensions, academic integrity and
