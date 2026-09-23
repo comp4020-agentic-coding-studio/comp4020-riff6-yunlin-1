@@ -1,0 +1,141 @@
+---
+import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
+import { withBase } from "astro-theme-university/url";
+import "astro-theme-university/styles/sidebar.css";
+import CourseRail from "../components/CourseRail.astro";
+import { getCourseModules, flattenModules } from "../lib/course-modules";
+import { siteConfig } from "../site-config";
+
+interface Props {
+  title: string;
+  description?: string | null;
+  /** Progress key for this page, when the page *is* a module item. */
+  itemId?: string;
+  /** Extra line under the title (dates, weights) rendered above the lead. */
+  eyebrow?: string;
+}
+
+const { title, description, itemId, eyebrow } = Astro.props;
+
+const modules = await getCourseModules();
+const spine = flattenModules(modules);
+const index = itemId ? spine.findIndex((item) => item.id === itemId) : -1;
+const previous = index > 0 ? spine[index - 1] : null;
+const next = index >= 0 && index < spine.length - 1 ? spine[index + 1] : null;
+---
+
+<BaseLayout title={title} description={description ?? undefined} {...siteConfig}>
+  <CourseRail currentPath={Astro.url.pathname} />
+  <article class="at-sidebar-content" data-item-id={itemId} data-item-title={title}>
+    <h1>{title}</h1>
+    {eyebrow && <p class="course-eyebrow">{eyebrow}</p>}
+    {description && <p class="lead">{description}</p>}
+    <slot />
+
+    {
+      itemId && (
+        <section class="course-footer" aria-label="Module navigation">
+          <button type="button" class="complete-toggle" data-complete-toggle={itemId} hidden>
+            Mark as complete
+          </button>
+          <nav class="course-steps" aria-label="Previous and next item">
+            {previous && (
+              <a class="course-step" rel="prev" href={withBase(previous.href)}>
+                <span class="course-step-dir">Previous</span>
+                <span class="course-step-title">{previous.title}</span>
+              </a>
+            )}
+            {next && (
+              <a class="course-step course-step--next" rel="next" href={withBase(next.href)}>
+                <span class="course-step-dir">Next</span>
+                <span class="course-step-title">{next.title}</span>
+              </a>
+            )}
+          </nav>
+        </section>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<script>
+  import "../scripts/progress.ts";
+</script>
+
+<style>
+  .course-eyebrow {
+    margin-block: calc(-1 * var(--at-spacing-sm)) var(--at-spacing-md);
+    font-size: var(--at-font-size-sm);
+    color: var(--at-text-secondary);
+  }
+
+  .course-footer {
+    margin-block-start: var(--at-spacing-2xl);
+    padding-block-start: var(--at-spacing-lg);
+    border-block-start: 1px solid var(--at-divider);
+  }
+
+  .complete-toggle {
+    font: inherit;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    border: 1.5px solid var(--at-accent);
+    color: var(--at-accent);
+    background: var(--at-bg);
+    cursor: pointer;
+  }
+
+  .complete-toggle:hover {
+    background: var(--at-accent-soft);
+  }
+
+  .complete-toggle[aria-pressed="true"] {
+    background: var(--at-accent);
+    color: var(--at-on-accent);
+  }
+
+  .complete-toggle[aria-pressed="true"]::before {
+    content: "✓ ";
+  }
+
+  .course-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--at-spacing-md);
+    margin-block-start: var(--at-spacing-lg);
+  }
+
+  .course-step {
+    flex: 1 1 14rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: var(--at-spacing-md);
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+    text-decoration: none;
+    color: var(--at-text);
+  }
+
+  .course-step:hover {
+    border-color: var(--at-accent);
+    background: var(--at-accent-soft);
+  }
+
+  .course-step--next {
+    text-align: end;
+  }
+
+  .course-step-dir {
+    font-size: var(--at-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-muted);
+  }
+
+  .course-step-title {
+    font-weight: 600;
+    color: var(--at-link);
+  }
+</style>

@@ -1,0 +1,235 @@
+---
+import { withBase } from "astro-theme-university/url";
+import { getCourseModules, flattenModules } from "../lib/course-modules";
+
+interface Props {
+  /** Path of the page being rendered, for the `aria-current` mark. */
+  currentPath?: string;
+}
+
+const { currentPath = Astro.url.pathname } = Astro.props;
+
+const modules = await getCourseModules();
+const spine = flattenModules(modules);
+const allIds = spine.map((item) => item.id).join(",");
+---
+
+{/* A plain div, not <aside>: this renders inside <main>, where a
+    complementary landmark would be nested. The labelled <nav> inside is the
+    landmark, which is the right semantics for a module list anyway. */}
+<div class="at-sidebar course-rail" transition:animate="none">
+  <section class="rail-progress" data-progress={allIds} aria-labelledby="rail-progress-title">
+    <p class="rail-progress-title" id="rail-progress-title">Your progress</p>
+    <div
+      class="rail-bar"
+      data-progress-bar
+      role="progressbar"
+      aria-labelledby="rail-progress-title"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-valuenow="0"
+    >
+    </div>
+    <p class="rail-progress-label" data-progress-label>{spine.length} items</p>
+  </section>
+
+  <nav aria-label="Course modules">
+    <ol class="rail-modules">
+      {
+        modules.map((module) => (
+          <li class="rail-module">
+            <p class="rail-module-title">
+              <span class="rail-week">Week {module.week}</span>
+              {module.title}
+            </p>
+            <ul class="rail-items">
+              {module.items.map((item) => {
+                const href = withBase(item.href);
+                return (
+                  <li class="rail-item" data-item={item.id} data-done="false">
+                    <a href={href} aria-current={currentPath === href ? "page" : undefined}>
+                      <span class="rail-dot" aria-hidden="true" />
+                      <span class="rail-item-text">
+                        <span class="rail-item-title">{item.title}</span>
+                        <span class="rail-item-kind">{item.kindLabel}</span>
+                      </span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </li>
+        ))
+      }
+    </ol>
+  </nav>
+
+  <p class="rail-reset">
+    <button type="button" data-reset-progress hidden>Reset my progress</button>
+  </p>
+</div>
+
+<style>
+  .course-rail {
+    max-height: calc(100dvh - var(--at-nav-height) - 2 * var(--at-spacing-lg));
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+
+  .rail-progress {
+    padding: var(--at-spacing-sm) var(--at-spacing-sm) var(--at-spacing-md);
+    border-block-end: 1px solid var(--at-divider);
+    margin-block-end: var(--at-spacing-md);
+  }
+
+  .rail-progress-title {
+    margin: 0 0 var(--at-spacing-xs);
+    font-size: var(--at-font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-muted);
+  }
+
+  .rail-bar {
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--at-accent-soft);
+    overflow: hidden;
+  }
+
+  .rail-bar::before {
+    content: "";
+    display: block;
+    height: 100%;
+    width: var(--pct, 0%);
+    background: var(--at-accent);
+    border-radius: inherit;
+    transition: width 0.25s ease;
+  }
+
+  .rail-progress-label {
+    margin: var(--at-spacing-xs) 0 0;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+  }
+
+  .rail-modules {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .rail-module + .rail-module {
+    margin-block-start: var(--at-spacing-md);
+  }
+
+  .rail-module-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    margin: 0 0 var(--at-spacing-xs);
+    padding-inline: var(--at-spacing-sm);
+    font-size: var(--at-font-size-sm);
+    font-weight: 600;
+    color: var(--at-text);
+  }
+
+  .rail-week {
+    font-size: var(--at-font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-muted);
+  }
+
+  .rail-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .rail-item a {
+    display: flex;
+    gap: var(--at-spacing-sm);
+    align-items: start;
+    padding: 0.4rem var(--at-spacing-sm);
+    border-radius: var(--at-border-radius);
+    color: var(--at-text-secondary);
+    text-decoration: none;
+  }
+
+  .rail-item a:hover {
+    color: var(--at-text);
+    background: var(--at-accent-soft);
+  }
+
+  .rail-item a[aria-current="page"] {
+    color: var(--at-accent);
+    background: var(--at-accent-soft);
+    font-weight: 600;
+  }
+
+  .rail-dot {
+    flex: none;
+    inline-size: 1rem;
+    block-size: 1rem;
+    margin-block-start: 0.15rem;
+    border: 1.5px solid var(--at-border);
+    border-radius: 999px;
+  }
+
+  .rail-item[data-done="true"] .rail-dot {
+    border-color: var(--at-accent);
+    background: var(--at-accent);
+    position: relative;
+  }
+
+  .rail-item[data-done="true"] .rail-dot::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0.28rem;
+    inset-block-start: 0.1rem;
+    inline-size: 0.28rem;
+    block-size: 0.55rem;
+    border: solid var(--at-on-accent);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .rail-item-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+  }
+
+  .rail-item-title {
+    font-size: var(--at-font-size-sm);
+  }
+
+  .rail-item-kind {
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-muted);
+  }
+
+  .rail-reset {
+    margin: var(--at-spacing-lg) 0 0;
+    padding-inline: var(--at-spacing-sm);
+  }
+
+  .rail-reset button {
+    font: inherit;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+    background: none;
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+  }
+
+  .rail-reset button:hover {
+    color: var(--at-text);
+    border-color: var(--at-accent);
+  }
+</style>
