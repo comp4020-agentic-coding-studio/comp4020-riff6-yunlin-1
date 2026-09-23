@@ -1,12 +1,12 @@
 ---
 import Card from "astro-theme-university/components/Card.astro";
 import CardGrid from "astro-theme-university/components/CardGrid.astro";
-import ContentLayout from "astro-theme-university/layouts/ContentLayout.astro";
 import { withBase } from "astro-theme-university/url";
+import CourseLayout from "../layouts/CourseLayout.astro";
 import heroImage from "../assets/images/hero-home.avif";
 import { courseMeta } from "../course-config";
 import { getCourseModules, flattenModules } from "../lib/course-modules";
-import { sessionLabels, siteConfig } from "../site-config";
+import { sessionLabels } from "../site-config";
 
 const spine = flattenModules(await getCourseModules());
 const allIds = spine.map((item) => item.id).join(",");
@@ -20,12 +20,11 @@ const resumeSpine = JSON.stringify(
 );
 ---
 
-<ContentLayout
+<CourseLayout
   title={`${courseMeta.code}: ${courseMeta.title}`}
   description={courseMeta.description}
   heroImage={heroImage}
   heroImageAlt="A single gold brushstroke tapers to a point partway across a cream field; a thin grey dashed line continues where the stroke does not."
-  {...siteConfig}
 >
   <ul class="course-tags" aria-label="Course tags">
     {courseMeta.tags.map((tag) => <li>{tag}</li>)}
@@ -100,11 +99,7 @@ const resumeSpine = JSON.stringify(
       <p>Who teaches the course and how to reach them.</p>
     </Card>
   </CardGrid>
-</ContentLayout>
-
-<script>
-  import "../scripts/progress.ts";
-</script>
+</CourseLayout>
 
 <style>
   .resume {

@@ -1,7 +1,10 @@
 ---
+import type { ImageMetadata } from "astro";
 import BaseLayout from "astro-theme-university/layouts/BaseLayout.astro";
+import Hero from "astro-theme-university/components/Hero.astro";
+import { resolveHeroImage } from "astro-theme-university/images";
+import type { RemoteImage } from "astro-theme-university/types";
 import { withBase } from "astro-theme-university/url";
-import "astro-theme-university/styles/sidebar.css";
 import CourseRail from "../components/CourseRail.astro";
 import { getCourseModules, flattenModules } from "../lib/course-modules";
 import { siteConfig } from "../site-config";
@@ -13,9 +16,16 @@ interface Props {
   itemId?: string;
   /** Extra line under the title (dates, weights) rendered above the lead. */
   eyebrow?: string;
+  /** Hero image, for the pages that carry one. */
+  heroImage?: string | ImageMetadata | RemoteImage;
+  heroImageAlt?: string;
 }
 
-const { title, description, itemId, eyebrow } = Astro.props;
+const { title, description, itemId, eyebrow, heroImage, heroImageAlt } = Astro.props;
+
+// BaseLayout only builds a hero from `heroTitle`, so an image hero is
+// rendered here and slotted in, the way ContentLayout does it.
+const resolvedHeroImage = resolveHeroImage(heroImage);
 
 const modules = await getCourseModules();
 const spine = flattenModules(modules);
@@ -24,10 +34,19 @@ const previous = index > 0 ? spine[index - 1] : null;
 const next = index >= 0 && index < spine.length - 1 ? spine[index + 1] : null;
 ---
 
-<BaseLayout title={title} description={description ?? undefined} {...siteConfig}>
+<BaseLayout
+  title={title}
+  description={description ?? undefined}
+  {...siteConfig}
+>
+  {
+    resolvedHeroImage && (
+      <Hero slot="hero" title={title} image={resolvedHeroImage} imageAlt={heroImageAlt ?? ""} />
+    )
+  }
   <CourseRail currentPath={Astro.url.pathname} />
   <article class="at-sidebar-content" data-item-id={itemId} data-item-title={title}>
-    <h1>{title}</h1>
+    {!resolvedHeroImage && <h1>{title}</h1>}
     {eyebrow && <p class="course-eyebrow">{eyebrow}</p>}
     {description && <p class="lead">{description}</p>}
     <slot />

@@ -1,8 +1,7 @@
 ---
 import { render } from "astro:content";
 import { getPublishedCollection } from "astro-course-university/content";
-import ContentLayout from "astro-theme-university/layouts/ContentLayout.astro";
-import { siteConfig } from "../../site-config";
+import CourseLayout from "../../layouts/CourseLayout.astro";
 
 export async function getStaticPaths() {
   const people = await getPublishedCollection("people");
@@ -30,12 +29,11 @@ const photoAlt = typeof rawPhotoAlt === "string" ? rawPhotoAlt : "";
 const description = person.data.description;
 ---
 
-<ContentLayout
+<CourseLayout
   title={person.data.title}
   description={description}
   heroImage={person.data.photo ?? undefined}
   heroImageAlt={photoAlt}
-  {...siteConfig}
 >
   <dl>
     {roleLabel && (
@@ -71,4 +69,4 @@ const description = person.data.description;
   </dl>
 
   <Content />
-</ContentLayout>
+</CourseLayout>

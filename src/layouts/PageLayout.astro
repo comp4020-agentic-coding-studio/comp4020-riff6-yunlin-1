@@ -1,8 +1,28 @@
 ---
 import MdxPageLayout from "astro-theme-university/layouts/MdxPageLayout.astro";
+import CourseRail from "../components/CourseRail.astro";
 import { siteConfig } from "../site-config";
+
+// Every page on the site carries the rail, including the plain markdown ones,
+// so the course spine never disappears from under a reader mid-navigation.
+// The lead is rendered here rather than by MdxPageLayout so that it sits
+// inside the content article alongside everything else, not above it.
+const { frontmatter, ...direct } = Astro.props as {
+  frontmatter?: Record<string, unknown>;
+  [key: string]: unknown;
+};
+const description = ((frontmatter ?? direct) as { description?: string }).description;
 ---
 
-<MdxPageLayout siteConfig={siteConfig} {...Astro.props}>
-  <slot />
+<MdxPageLayout siteConfig={siteConfig} lead={false} {...Astro.props}>
+  <slot name="head" slot="head" />
+  <CourseRail currentPath={Astro.url.pathname} />
+  <article class="at-sidebar-content">
+    {description && <p class="lead">{description}</p>}
+    <slot />
+  </article>
 </MdxPageLayout>
+
+<script>
+  import "../scripts/progress.ts";
+</script>

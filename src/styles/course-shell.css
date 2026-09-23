@@ -1,0 +1,49 @@
+/* The shell the rail needs.
+ *
+ * The theme's page grid reserves `--at-sidebar-inset` on *both* sides, so a
+ * page with a rail centres its reading column in what is left over: the text
+ * ends up adrift in the middle-right of the viewport with a gutter the width
+ * of the rail doing nothing on the far side, and the nav — seven links now —
+ * squeezed into the same narrow column.
+ *
+ * A course shell wants the other arrangement, the one every LMS converges on:
+ * the rail and the rule are a fixed left edge, and everything else starts
+ * there. So the left column is pinned to exactly the rail's width instead of
+ * flexing, the right one takes whatever is left, and the reading column gets
+ * the room that frees up.
+ */
+@layer at.components {
+  body:has(.at-sidebar) {
+    /* Wider than the theme's 48rem: the rubric and grade tables are the
+       widest things on the site, and they were the ones being squeezed. */
+    --at-content-width: 56rem;
+    --at-rail-edge: calc(var(--at-gutter) + var(--at-sidebar-inset));
+
+    grid-template-columns:
+      [full-start]
+      var(--at-rail-edge)
+      [inset-start]
+      var(--at-content-inset)
+      [content-start]
+      min(
+        var(--at-content-width),
+        100% - var(--at-rail-edge) - var(--at-content-inset) - var(--at-gutter)
+      )
+      [content-end]
+      minmax(var(--at-gutter), 1fr)
+      [full-end];
+  }
+
+  /* The gold rule reads its own position from the theme's symmetric formula,
+     which no longer describes this grid. Pin it to `inset-start` so it keeps
+     doing its job: bisecting the crest, and separating the rail from the
+     column you actually read. */
+  body:has(.at-sidebar)::after {
+    inset-inline-start: var(--at-rail-edge);
+  }
+
+  /* Below the theme's sidebar breakpoint the rail is hidden and
+     `--at-sidebar-inset` is zeroed, so the rules above collapse to a plain
+     one-column page on their own — no separate mobile layout to keep in
+     step. */
+}

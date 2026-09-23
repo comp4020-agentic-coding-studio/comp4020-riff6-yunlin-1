@@ -190,6 +190,15 @@ function paintGrades(marks: MarkMap): void {
         "% to pass overall.";
 }
 
+/** Bring the rail's current item into view without scrolling the page with it. */
+function revealCurrentInRail(): void {
+  const rail = document.querySelector<HTMLElement>(".course-rail");
+  const current = rail?.querySelector<HTMLElement>('a[aria-current="page"]');
+  if (!rail || !current) return;
+  const offset = current.offsetTop - rail.clientHeight / 2 + current.offsetHeight / 2;
+  rail.scrollTop = Math.max(0, offset);
+}
+
 function bind(): void {
   const article = document.querySelector<HTMLElement>("[data-item-id]");
   if (article?.dataset.itemId) {
@@ -239,6 +248,7 @@ function bind(): void {
   }
 
   paint();
+  revealCurrentInRail();
 }
 
 bind();
