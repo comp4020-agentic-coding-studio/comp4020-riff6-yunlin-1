@@ -31,6 +31,20 @@ const holisticMarking = z.object({
   description: z.string().trim().min(40),
 });
 
+// A rubric row says what each letter band looks like for one criterion. The
+// bands are the ANU set and the whole set is required: a rubric that
+// describes only the top of the range tells a student aiming at a pass
+// nothing, which is the failure mode this course would notice first.
+const rubricRow = z.object({
+  criterion: z.string().trim().min(1),
+  weight: z.coerce.number().positive().max(100).optional(),
+  hd: z.string().trim().min(10),
+  d: z.string().trim().min(10),
+  cr: z.string().trim().min(10),
+  p: z.string().trim().min(10),
+  n: z.string().trim().min(10),
+});
+
 export const collections = {
   sessions: defineCollection({
     loader: courseNodeLoader("sessions"),
@@ -51,6 +65,7 @@ export const collections = {
         due: z.coerce.date(),
         weight: z.coerce.number().positive().max(100),
         marking: z.discriminatedUnion("mode", [weightedMarking, holisticMarking]).optional(),
+        rubric: z.array(rubricRow).min(1).optional(),
       })
       .loose(),
   }),

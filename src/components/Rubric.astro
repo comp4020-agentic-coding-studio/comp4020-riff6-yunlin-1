@@ -1,0 +1,133 @@
+---
+import { withBase } from "astro-theme-university/url";
+import { gradeBands } from "../lib/grades";
+
+export interface RubricRow {
+  criterion: string;
+  weight?: number;
+  hd: string;
+  d: string;
+  cr: string;
+  p: string;
+  n: string;
+}
+
+interface Props {
+  rubric: RubricRow[];
+}
+
+const { rubric } = Astro.props;
+const showWeights = rubric.some((row) => row.weight != null);
+const cellFor = (row: RubricRow, code: string): string =>
+  ({ HD: row.hd, D: row.d, CR: row.cr, P: row.p, N: row.n })[code] ?? "";
+---
+
+<section aria-labelledby="rubric-heading">
+  <h2 id="rubric-heading">Rubric</h2>
+  <p>
+    The bands below are the ANU letter grades. Read across a row to see what the same criterion
+    looks like at each grade — the point of publishing it is that you can aim at a band on
+    purpose rather than find out afterwards which one you landed in.
+  </p>
+  <div class="rubric-scroll" tabindex="0" role="region" aria-label="Rubric table, scrollable">
+    <table class="rubric">
+      <thead>
+        <tr>
+          <th scope="col">Criterion{showWeights && " (weight)"}</th>
+          {
+            gradeBands.map((band) => (
+              <th scope="col">
+                <span class="rubric-band">{band.code}</span>
+                <span class="rubric-band-range">{band.min}–{band.max}</span>
+              </th>
+            ))
+          }
+        </tr>
+      </thead>
+      <tbody>
+        {
+          rubric.map((row) => (
+            <tr>
+              <th scope="row">
+                {row.criterion}
+                {row.weight != null && <span class="rubric-weight">{row.weight}%</span>}
+              </th>
+              {gradeBands.map((band) => (
+                <td>{cellFor(row, band.code)}</td>
+              ))}
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+  <p class="rubric-note">
+    What a mark out of 100 turns into is set out on the <a href={withBase("/grades/")}>grades
+    page</a>, alongside a calculator for the weighted total.
+  </p>
+</section>
+
+<style>
+  .rubric-scroll {
+    overflow-x: auto;
+    margin-block: var(--at-spacing-lg);
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+  }
+
+  .rubric-scroll:focus-visible {
+    outline: 2px solid var(--at-accent);
+    outline-offset: 2px;
+  }
+
+  .rubric {
+    margin: 0;
+    border-collapse: collapse;
+    min-width: 46rem;
+    font-size: var(--at-font-size-sm);
+  }
+
+  .rubric th,
+  .rubric td {
+    padding: var(--at-spacing-sm) var(--at-spacing-md);
+    text-align: start;
+    vertical-align: top;
+    border-block-end: 1px solid var(--at-divider);
+  }
+
+  .rubric thead th {
+    background: var(--at-table-header-bg);
+    color: var(--at-table-header-text);
+    white-space: nowrap;
+  }
+
+  .rubric tbody th {
+    width: 10rem;
+    background: var(--at-bg-alt);
+    color: var(--at-text);
+  }
+
+  .rubric-band {
+    display: block;
+    font-size: var(--at-font-size-base);
+  }
+
+  .rubric-band-range {
+    display: block;
+    font-weight: 400;
+    font-size: var(--at-font-size-xs);
+    opacity: 0.85;
+  }
+
+  .rubric-weight {
+    display: block;
+    font-weight: 400;
+    font-size: var(--at-font-size-xs);
+    color: var(--at-text-secondary);
+  }
+
+  .rubric-note {
+    font-size: var(--at-font-size-sm);
+    color: var(--at-text-secondary);
+  }
+</style>

@@ -22,6 +22,35 @@ marking:
       weight: 20
     - name: Engagement with the semester
       weight: 20
+rubric:
+  - criterion: Argument
+    weight: 35
+    hd: "The unstated thing does the persuading: state it outright and the piece collapses."
+    d: "The argument depends on the omission, though it would survive the thing being said aloud."
+    cr: "A clear argument, with an omission running alongside it rather than underneath it."
+    p: "A position is argued and something is left unsaid."
+    n: "The piece says everything it means, or means nothing in particular."
+  - criterion: Craft
+    weight: 25
+    hd: "Every formal choice serves the withholding; nothing in the piece is ornament."
+    d: "Controlled work in its medium, with one or two passages carrying nothing."
+    cr: "Competent, with the form and the argument only loosely in step."
+    p: "The medium is handled well enough to carry the argument."
+    n: "Craft failures obscure the argument."
+  - criterion: Self-critique
+    weight: 20
+    hd: "Meets week 12's counter-case head on and concedes what it should."
+    d: "Addresses the counter-case; the concession is real but small."
+    cr: "Mentions the counter-case and answers a weaker version of it."
+    p: "Acknowledges that not every omission earns its keep."
+    n: "Treats the omission as self-evidently justified."
+  - criterion: Engagement with the semester
+    weight: 20
+    hd: "Three or more weeks are argued with rather than cited, and one is turned against the piece."
+    d: "Three weeks named and genuinely put to work."
+    cr: "Three weeks named; one of them is decorative."
+    p: "Fewer than three weeks used substantively, or used only to agree with."
+    n: "The semester's material is absent, or name-checked without content."
 spec:
   - a persuasive piece in any medium, plus a 600-1000 word critical
     commentary

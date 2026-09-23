@@ -21,6 +21,25 @@ marking:
     three sentences on what it cost and what it bought. An entry that
     only asserts a cut without pointing at a specific, checkable
     instance of it will be marked down.
+rubric:
+  - criterion: Range
+    hd: "Entries span disciplines that share no vocabulary, and the spread is itself part of the argument."
+    d: "Four or more genuinely distinct disciplines, with one or two entries clustering."
+    cr: "Four disciplines named, but two of them are the same habit in different clothes."
+    p: "The minimum spread, drawn mostly from set material."
+    n: "Fewer than four disciplines, or every entry taken from the course reading list."
+  - criterion: Specificity
+    hd: "Every omission is locatable to the page, shot, bar or line; a reader could go and check."
+    d: "Nearly every entry is locatable; one or two point at a work rather than a moment in it."
+    cr: "Entries name works rather than moments, so a reader has to go hunting."
+    p: "Instances are identified loosely, but the thing left out is at least named."
+    n: "General claims about whole genres or fields, with no checkable instance behind them."
+  - criterion: What it cost, what it bought
+    hd: "Each entry weighs both, and the cost is shown rather than conceded in passing."
+    d: "Both are argued, with the cost occasionally assumed rather than demonstrated."
+    cr: "The benefit is argued; the cost is asserted."
+    p: "Each entry describes the omission more than it weighs it."
+    n: "Entries record that something is missing without asking what the absence is doing."
 spec:
   - at least 8 dated entries, spanning at least 4 different disciplines
   - every entry names a specific, locatable instance --- not a general
