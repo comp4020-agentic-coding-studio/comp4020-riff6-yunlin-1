@@ -1,49 +1,79 @@
-/* The shell the rail needs.
+/* The course shell: a permanent rail, and the page moved over to make room.
  *
- * The theme's page grid reserves `--at-sidebar-inset` on *both* sides, so a
- * page with a rail centres its reading column in what is left over: the text
- * ends up adrift in the middle-right of the viewport with a gutter the width
- * of the rail doing nothing on the far side, and the nav — seven links now —
- * squeezed into the same narrow column.
+ * The theme treats a sidebar as a block inside `<main>`, which puts it below
+ * the hero and lets it scroll away with the page. A course shell wants the
+ * other arrangement, the one every LMS converges on: the rail owns the left
+ * edge of the window outright, from the top of the viewport to the bottom,
+ * and everything else --- nav, hero, content, footer --- starts to the right
+ * of it and stays there.
  *
- * A course shell wants the other arrangement, the one every LMS converges on:
- * the rail and the rule are a fixed left edge, and everything else starts
- * there. So the left column is pinned to exactly the rail's width instead of
- * flexing, the right one takes whatever is left, and the reading column gets
- * the room that frees up.
+ * So the rail is taken out of the flow entirely and pinned to the window,
+ * and the page is inset by exactly its width. Insetting the body rather
+ * than each band means the theme's own full-bleed elements (`grid-column:
+ * full`) keep working unchanged: `full-start` simply begins after the rail.
  */
 @layer at.components {
   body:has(.at-sidebar) {
+    --at-rail-width: 17rem;
+
     /* Wider than the theme's 48rem: the rubric and grade tables are the
        widest things on the site, and they were the ones being squeezed. */
     --at-content-width: 56rem;
-    --at-rail-edge: calc(var(--at-gutter) + var(--at-sidebar-inset));
 
+    padding-inline-start: var(--at-rail-width);
+
+    /* The theme's grid reserves the rail's width on both sides of the
+       content column. The page itself is inset now, so that reservation
+       would count the rail twice on the left and invent a matching dead
+       gutter on the right --- which is what left the text adrift in the
+       middle of the window. Stated in full here instead: one gutter each
+       side, and the reading column takes what it needs. */
     grid-template-columns:
       [full-start]
-      var(--at-rail-edge)
+      var(--at-gutter)
       [inset-start]
       var(--at-content-inset)
       [content-start]
       min(
         var(--at-content-width),
-        100% - var(--at-rail-edge) - var(--at-content-inset) - var(--at-gutter)
+        100% - 2 * var(--at-gutter) - var(--at-content-inset)
       )
       [content-end]
       minmax(var(--at-gutter), 1fr)
       [full-end];
   }
 
-  /* The gold rule reads its own position from the theme's symmetric formula,
-     which no longer describes this grid. Pin it to `inset-start` so it keeps
-     doing its job: bisecting the crest, and separating the rail from the
-     column you actually read. */
-  body:has(.at-sidebar)::after {
-    inset-inline-start: var(--at-rail-edge);
+  body:has(.at-sidebar) .at-main > .at-sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+
+    /* Under the sticky nav (100) so the search dialog still covers it, over
+       everything that scrolls. */
+    z-index: 50;
+    inline-size: var(--at-rail-width);
+    max-block-size: none;
+    margin-inline-end: 0;
+    padding: var(--at-spacing-lg) var(--at-spacing-sm);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--at-bg-alt);
+    border-inline-end: 1px solid var(--at-divider);
   }
 
-  /* Below the theme's sidebar breakpoint the rail is hidden and
-     `--at-sidebar-inset` is zeroed, so the rules above collapse to a plain
-     one-column page on their own — no separate mobile layout to keep in
-     step. */
+  /* The gold rule reads its own position from the theme's symmetric formula,
+     which no longer describes this grid. Pin it to `inset-start` so it keeps
+     doing its job: bisecting the crest, and marking where the page begins. */
+  body:has(.at-sidebar)::after {
+    inset-inline-start: calc(var(--at-rail-width) + var(--at-gutter));
+  }
+
+  /* Below the theme's sidebar breakpoint the rail is hidden outright, so the
+     shell collapses by zeroing its width: the padding goes, the rule returns
+     to the gutter, and what is left is the theme's ordinary one-column page. */
+  @media (width <= 768px) {
+    body:has(.at-sidebar) {
+      --at-rail-width: 0px;
+    }
+  }
 }
