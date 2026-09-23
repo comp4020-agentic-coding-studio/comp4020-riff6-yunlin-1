@@ -1,0 +1,193 @@
+---
+import { getPublishedCollection } from "astro-course-university/content";
+import { withBase } from "astro-theme-university/url";
+import CourseLayout from "../../layouts/CourseLayout.astro";
+import { formatCourseDate } from "../../lib/dates";
+import { gradeBands } from "../../lib/grades";
+
+const assessments = (await getPublishedCollection("assessments")).sort(
+  (a, b) => a.data.week - b.data.week,
+);
+const totalWeight = assessments.reduce((sum, item) => sum + item.data.weight, 0);
+---
+
+<CourseLayout
+  title="Grades"
+  description="What each mark is worth, what letter it becomes, and what the three of them add up to. Enter a mark as it comes back and the page does the rest — in your browser, for your eyes."
+>
+  <section aria-labelledby="your-marks">
+    <h2 id="your-marks">Your marks</h2>
+    <div class="grades-scroll" tabindex="0" role="region" aria-label="Your marks table, scrollable">
+      <table class="grades" data-grades>
+        <thead>
+          <tr>
+            <th scope="col">Assessment</th>
+            <th scope="col">Due</th>
+            <th scope="col">Weight</th>
+            <th scope="col">Mark out of 100</th>
+            <th scope="col">Grade</th>
+            <th scope="col">Counts as</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            assessments.map((assessment) => (
+              <tr data-grade-row={`assessments/${assessment.id}`} data-weight={assessment.data.weight} data-graded="false">
+                <th scope="row">
+                  <a href={withBase(`/assessments/${assessment.id}/`)}>{assessment.data.title}</a>
+                </th>
+                <td>{formatCourseDate(assessment.data.due)}</td>
+                <td>{assessment.data.weight}%</td>
+                <td>
+                  <input
+                    type="number"
+                    inputmode="numeric"
+                    min="0"
+                    max="100"
+                    step="0.5"
+                    placeholder="—"
+                    aria-label={`Mark out of 100 for ${assessment.data.title}`}
+                    data-mark={`assessments/${assessment.id}`}
+                  />
+                </td>
+                <td data-band>not marked</td>
+                <td data-contribution>—</td>
+              </tr>
+            ))
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row" colspan={2}>Weighted average so far</th>
+            <td>{totalWeight}%</td>
+            <td data-running>no marks entered</td>
+            <td colspan={2} data-carried>—</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="grades-note" data-grade-note>
+      Enter a mark and this page does the arithmetic the cover sheet leaves out.
+    </p>
+    <p class="grades-privacy">
+      Marks you type here stay in this browser. Nothing is submitted, nothing is checked against
+      anything, and the official record is the one the university keeps — this page only saves you
+      doing the multiplication on the back of an envelope.
+    </p>
+  </section>
+
+  <section aria-labelledby="the-bands">
+    <h2 id="the-bands">The bands</h2>
+    <div class="grades-scroll" tabindex="0" role="region" aria-label="Grade bands table, scrollable">
+      <table class="grades">
+        <thead>
+          <tr>
+            <th scope="col">Grade</th>
+            <th scope="col">Name</th>
+            <th scope="col">Range</th>
+            <th scope="col">What it says about the work</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            gradeBands.map((band) => (
+              <tr>
+                <th scope="row">{band.code}</th>
+                <td>{band.name}</td>
+                <td>{band.min}–{band.max}</td>
+                <td>{band.gloss}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="if-late">
+    <h2 id="if-late">If a mark is going to be late</h2>
+    <p>
+      A late piece is marked down before anyone reads it, which is the wrong reason to lose a
+      band. If the work will not arrive on time, the thing to read is the
+      <a href={withBase("/assessments/extensions/")}>extensions page</a> — it sets out what an
+      extension is for, what it is not for, and how to ask for one before the due date rather
+      than after it.
+    </p>
+  </section>
+</CourseLayout>
+
+<style>
+  .grades-scroll {
+    overflow-x: auto;
+    margin-block: var(--at-spacing-lg);
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+  }
+
+  .grades-scroll:focus-visible {
+    outline: 2px solid var(--at-accent);
+    outline-offset: 2px;
+  }
+
+  .grades {
+    margin: 0;
+    border-collapse: collapse;
+    min-width: 40rem;
+    font-size: var(--at-font-size-sm);
+    width: 100%;
+  }
+
+  .grades th,
+  .grades td {
+    padding: var(--at-spacing-sm) var(--at-spacing-md);
+    text-align: start;
+    vertical-align: top;
+    border-block-end: 1px solid var(--at-divider);
+  }
+
+  .grades thead th {
+    background: var(--at-table-header-bg);
+    color: var(--at-table-header-text);
+    white-space: nowrap;
+  }
+
+  .grades tbody th {
+    background: var(--at-bg-alt);
+  }
+
+  .grades tfoot th,
+  .grades tfoot td {
+    background: var(--at-bg-alt);
+    font-weight: 600;
+    border-block-end: none;
+  }
+
+  .grades input {
+    font: inherit;
+    width: 6rem;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+    background: var(--at-bg);
+    color: var(--at-text);
+  }
+
+  .grades input:focus-visible {
+    outline: 2px solid var(--at-accent);
+    outline-offset: 1px;
+  }
+
+  .grades tr[data-graded="true"] [data-band] {
+    font-weight: 700;
+    color: var(--at-accent);
+  }
+
+  .grades-note {
+    font-weight: 600;
+  }
+
+  .grades-privacy {
+    font-size: var(--at-font-size-sm);
+    color: var(--at-text-secondary);
+  }
+</style>

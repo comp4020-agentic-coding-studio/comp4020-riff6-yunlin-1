@@ -4,10 +4,12 @@ import { getPublishedCollection } from "astro-course-university/content";
 import RelatedContent from "astro-course-university/components/RelatedContent.astro";
 import SpecList from "astro-course-university/components/SpecList.astro";
 import Callout from "astro-theme-university/components/Callout.astro";
-import ContentLayout from "astro-theme-university/layouts/ContentLayout.astro";
+import { withBase } from "astro-theme-university/url";
+import CourseLayout from "../../layouts/CourseLayout.astro";
 import MarkingModel from "../../components/MarkingModel.astro";
+import Rubric from "../../components/Rubric.astro";
 import { formatCourseDate } from "../../lib/dates";
-import { graphCollections, siteConfig } from "../../site-config";
+import { graphCollections } from "../../site-config";
 
 export async function getStaticPaths() {
   const assessments = await getPublishedCollection("assessments");
@@ -21,10 +23,11 @@ const { assessment } = Astro.props;
 const { Content } = await render(assessment);
 ---
 
-<ContentLayout
+<CourseLayout
   title={assessment.data.title}
   description={assessment.data.description}
-  {...siteConfig}
+  itemId={`assessments/${assessment.id}`}
+  eyebrow={`Assessment · due ${formatCourseDate(assessment.data.due)} · ${assessment.data.weight}% of the course mark`}
 >
   {
     assessment.data.draft && (
@@ -35,7 +38,6 @@ const { Content } = await render(assessment);
       </Callout>
     )
   }
-  <p><strong>Due:</strong> {formatCourseDate(assessment.data.due)} · <strong>Weight:</strong> {assessment.data.weight}%</p>
   <Content />
   <SpecList spec={assessment.data.spec}>
     The brief poses the problem and leaves room for a response. The spec is the
@@ -43,5 +45,20 @@ const { Content } = await render(assessment);
     the rest call for judgement.
   </SpecList>
   {assessment.data.marking && <MarkingModel marking={assessment.data.marking} />}
+  {assessment.data.rubric && <Rubric rubric={assessment.data.rubric} />}
+  <p class="assessment-extension">
+    Need longer? Read <a href={withBase("/assessments/extensions/")}>what an extension is for on
+    this course</a> before the due date — afterwards it is a late-penalty appeal, not an
+    extension.
+  </p>
   <RelatedContent entry={assessment} collections={graphCollections} />
-</ContentLayout>
+</CourseLayout>
+
+<style>
+  .assessment-extension {
+    padding: var(--at-spacing-md);
+    border-inline-start: 4px solid var(--at-accent);
+    background: var(--at-bg-alt);
+    font-size: var(--at-font-size-sm);
+  }
+</style>

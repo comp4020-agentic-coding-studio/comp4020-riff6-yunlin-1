@@ -1,0 +1,277 @@
+---
+import { getPublishedCollection } from "astro-course-university/content";
+import { withBase } from "astro-theme-university/url";
+import Callout from "astro-theme-university/components/Callout.astro";
+import CourseLayout from "../../../layouts/CourseLayout.astro";
+import { formatCourseDate } from "../../../lib/dates";
+
+const assessments = (await getPublishedCollection("assessments")).sort(
+  (a, b) => a.data.week - b.data.week,
+);
+const convenorEmail = "marisol.quaye@slop.university";
+
+const options = assessments.map((assessment) => ({
+  id: assessment.id,
+  title: assessment.data.title,
+  due: assessment.data.due.toISOString().slice(0, 10),
+  dueLabel: formatCourseDate(assessment.data.due),
+  weight: assessment.data.weight,
+}));
+---
+
+<CourseLayout
+  title="Extensions"
+  description="What an extension is for on a course about restraint, what it will not buy you, and how to ask for one before the due date rather than after it."
+>
+  <p>
+    A course that spends twelve weeks arguing that leaving things out is a discipline has an
+    awkward relationship with the word <em>extension</em>. More time is more material, and more
+    material is the failure mode this syllabus was built to resist. So the rule here is narrower
+    than the university's default: an extension buys you time to make the same cut properly, not
+    time to put back in what you should have removed.
+  </p>
+
+  <Callout type="warning">
+    <p>
+      <strong>Ask before the due date.</strong> A request that arrives after the deadline is a
+      late-penalty appeal, not an extension, and it goes through the university's process rather
+      than this one.
+    </p>
+  </Callout>
+
+  <h2>What counts</h2>
+  <ul>
+    <li>
+      <strong>Illness or injury</strong>, yours or someone you care for, covering any part of the
+      working period — not only the final week.
+    </li>
+    <li>
+      <strong>Circumstances outside your control</strong>: bereavement, displacement, a job that
+      moved without notice, a carer's week that arrived unannounced.
+    </li>
+    <li>
+      <strong>A medium that failed you</strong>. A studio piece whose material, equipment or
+      collaborator fell through is a real obstruction, and this course marks the piece, not your
+      luck with a borrowed camera.
+    </li>
+  </ul>
+
+  <h2>What does not</h2>
+  <ul>
+    <li>
+      <strong>Scope you chose.</strong> A piece that has grown past what the brief asked for is
+      not running late; it is running long, and the fix is the course's own subject.
+    </li>
+    <li>
+      <strong>Wanting another pass.</strong> Every piece would be better with one more week. The
+      deadline is the cut, and the cut is the assessment.
+    </li>
+    <li>
+      <strong>Three assessments landing near each other.</strong> They land where the
+      <a href={withBase("/modules/")}>module schedule</a> says they will, from week one.
+    </li>
+  </ul>
+
+  <h2>How long you can ask for</h2>
+  <p>
+    Up to seven days is decided by the convenor and usually answered within two working days.
+    Beyond seven days the request goes to the school, needs documentation, and — on a
+    twelve-week course — starts to collide with the next piece of work. If you need more than a
+    fortnight, the conversation to have is about deferral, not extension.
+  </p>
+
+  <h2>Draft your request</h2>
+  <p>
+    Fill this in and it composes the email for you, with the fields the convenor otherwise has to
+    ask for. Nothing is sent until you press send in your own mail client.
+  </p>
+
+  <form class="ext-form" id="ext-form" data-convenor={convenorEmail}>
+    <div class="ext-field">
+      <label for="ext-assessment">Which assessment</label>
+      <select id="ext-assessment" name="assessment">
+        {
+          options.map((option) => (
+            <option value={option.id} data-due={option.due} data-due-label={option.dueLabel}>
+              {option.title} — due {option.dueLabel} ({option.weight}%)
+            </option>
+          ))
+        }
+      </select>
+    </div>
+
+    <div class="ext-field">
+      <label for="ext-days">Days requested</label>
+      <select id="ext-days" name="days">
+        <option value="2">2 days</option>
+        <option value="4">4 days</option>
+        <option value="7" selected>7 days (the convenor's limit)</option>
+        <option value="14">14 days (goes to the school)</option>
+      </select>
+    </div>
+
+    <div class="ext-field">
+      <label for="ext-reason">Grounds</label>
+      <select id="ext-reason" name="reason">
+        <option value="illness or injury affecting the working period">Illness or injury</option>
+        <option value="caring responsibilities that arrived without notice">Caring responsibilities</option>
+        <option value="bereavement or another serious personal circumstance">Bereavement or personal circumstance</option>
+        <option value="a material, equipment or collaborator failure in the studio work">Studio or equipment failure</option>
+      </select>
+    </div>
+
+    <div class="ext-field">
+      <label for="ext-detail">What happened, in a sentence or two</label>
+      <textarea id="ext-detail" name="detail" rows="3" placeholder="The specifics, not the category — the convenor is reading for whether the obstruction was real, not whether it sounds serious."></textarea>
+    </div>
+
+    <div class="ext-field">
+      <label for="ext-name">Your name and student number</label>
+      <input id="ext-name" name="name" type="text" autocomplete="name" />
+    </div>
+
+    <p class="ext-new-due">
+      New due date if granted: <strong data-ext-newdue>—</strong>
+    </p>
+
+    <p>
+      <a class="ext-send" href={`mailto:${convenorEmail}`} data-ext-mailto>Open this in your mail client</a>
+    </p>
+    <p class="ext-note">
+      This form builds a <code>mailto:</code> link in your browser. It stores nothing and submits
+      nothing; the site has no server to submit it to.
+    </p>
+  </form>
+
+  <h2>After it is granted</h2>
+  <p>
+    An extension moves the due date and nothing else. The rubric on the assessment page is the
+    same rubric, the weight is the same weight, and the marker will not know — nor should they —
+    that the piece arrived a week later than the rest. What you have bought is room to finish the
+    cut, and the cut is still the thing being marked.
+  </p>
+</CourseLayout>
+
+<script>
+  function bindExtensionForm() {
+    const form = document.querySelector<HTMLFormElement>("#ext-form");
+    if (!form) return;
+    const convenor = form.dataset.convenor ?? "";
+    const assessment = form.querySelector<HTMLSelectElement>("#ext-assessment");
+    const days = form.querySelector<HTMLSelectElement>("#ext-days");
+    const reason = form.querySelector<HTMLSelectElement>("#ext-reason");
+    const detail = form.querySelector<HTMLTextAreaElement>("#ext-detail");
+    const name = form.querySelector<HTMLInputElement>("#ext-name");
+    const newDue = form.querySelector<HTMLElement>("[data-ext-newdue]");
+    const mailto = form.querySelector<HTMLAnchorElement>("[data-ext-mailto]");
+    if (!assessment || !days || !reason || !detail || !name || !newDue || !mailto) return;
+
+    const formatter = new Intl.DateTimeFormat("en-AU", { dateStyle: "long", timeZone: "UTC" });
+
+    function update() {
+      const option = assessment!.selectedOptions[0];
+      const due = option?.dataset.due ?? "";
+      const dueLabel = option?.dataset.dueLabel ?? due;
+      const added = Number(days!.value);
+      const moved = new Date(due + "T00:00:00Z");
+      moved.setUTCDate(moved.getUTCDate() + added);
+      const movedLabel = formatter.format(moved);
+      newDue!.textContent = movedLabel;
+
+      const subject =
+        "SLOP3268 extension request: " + (option?.textContent ?? "").split(" — ")[0];
+      const body = [
+        "Dear Marisol,",
+        "",
+        "I am asking for a " + added + "-day extension on " +
+          (option?.textContent ?? "").split(" — ")[0] + ", currently due " + dueLabel + ".",
+        "",
+        "Grounds: " + reason!.value + ".",
+        "",
+        detail!.value.trim() || "[what happened, in a sentence or two]",
+        "",
+        "If granted, the new due date would be " + movedLabel + ".",
+        "",
+        name!.value.trim() || "[your name and student number]",
+      ].join("\n");
+
+      mailto!.href =
+        "mailto:" + convenor + "?subject=" + encodeURIComponent(subject) +
+        "&body=" + encodeURIComponent(body);
+    }
+
+    for (const field of [assessment, days, reason, detail, name]) {
+      field.addEventListener("input", update);
+    }
+    form.addEventListener("submit", (event) => event.preventDefault());
+    update();
+  }
+
+  bindExtensionForm();
+  document.addEventListener("astro:page-load", bindExtensionForm);
+</script>
+
+<style>
+  .ext-form {
+    margin-block: var(--at-spacing-lg);
+    padding: var(--at-spacing-lg);
+    border: 1px solid var(--at-border);
+    border-inline-start: 4px solid var(--at-accent);
+    border-radius: var(--at-border-radius);
+    background: var(--at-bg-alt);
+  }
+
+  .ext-field {
+    margin-block-end: var(--at-spacing-md);
+  }
+
+  .ext-field label {
+    display: block;
+    margin-block-end: var(--at-spacing-xs);
+    font-size: var(--at-font-size-sm);
+    font-weight: 600;
+  }
+
+  .ext-field select,
+  .ext-field input,
+  .ext-field textarea {
+    font: inherit;
+    font-size: var(--at-font-size-sm);
+    width: 100%;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+    background: var(--at-bg);
+    color: var(--at-text);
+  }
+
+  .ext-field :is(select, input, textarea):focus-visible {
+    outline: 2px solid var(--at-accent);
+    outline-offset: 1px;
+  }
+
+  .ext-new-due {
+    font-size: var(--at-font-size-sm);
+  }
+
+  .ext-send {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    background: var(--at-accent);
+    color: var(--at-on-accent);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .ext-send:hover {
+    background: var(--at-accent-hover);
+    color: var(--at-on-accent);
+  }
+
+  .ext-note {
+    margin-block-end: 0;
+    font-size: var(--at-font-size-sm);
+    color: var(--at-text-secondary);
+  }
+</style>
