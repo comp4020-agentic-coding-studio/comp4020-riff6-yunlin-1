@@ -12,6 +12,20 @@
  * than each band means the theme's own full-bleed elements (`grid-column:
  * full`) keep working unchanged: `full-start` simply begins after the rail.
  */
+/* The page surface. The brief was to leave the palette alone, and the gold,
+ * the bronze and the warm grey are untouched --- this moves only the paper
+ * the ink sits on, from the theme's warm near-white to plain white, so the
+ * rail reads as a distinct surface beside it. Dark mode keeps its own. The
+ * doubled `:root` wins on specificity rather than on source order, which is
+ * not guaranteed once the theme's own tokens are bundled. */
+@layer at.tokens {
+  :root:root {
+    --at-bg: light-dark(#fff, oklch(from var(--at-primary) 12% 0.008 h));
+    --at-bg-alt: light-dark(#f5f5f6, oklch(from var(--at-primary) 15% 0.01 h));
+    --at-bg-elevated: light-dark(#fff, oklch(from var(--at-primary) 19% 0.012 h));
+  }
+}
+
 @layer at.components {
   body:has(.at-sidebar) {
     --at-rail-width: 17rem;
@@ -52,20 +66,35 @@
        everything that scrolls. */
     z-index: 50;
     inline-size: var(--at-rail-width);
-    max-block-size: none;
+
+    /* Stated outright rather than inferred from `inset-block`, which an
+       element carrying a view-transition-name does not resolve against the
+       viewport --- the rail grew to its content height instead, so there was
+       never an overflow for `.rail-nav` to scroll. */
+    block-size: 100dvh;
+    max-block-size: 100dvh;
     margin-inline-end: 0;
     padding: var(--at-spacing-lg) var(--at-spacing-sm);
-    overflow-y: auto;
-    overscroll-behavior: contain;
     background: var(--at-bg-alt);
     border-inline-end: 1px solid var(--at-divider);
   }
 
   /* The gold rule reads its own position from the theme's symmetric formula,
-     which no longer describes this grid. Pin it to `inset-start` so it keeps
-     doing its job: bisecting the crest, and marking where the page begins. */
+     which no longer describes this grid. Pin it to `inset-start` instead. It
+     no longer bisects the crest --- the lockup has moved into the rail --- so
+     what it now marks is the edge the page begins at, top to bottom. */
   body:has(.at-sidebar)::after {
     inset-inline-start: calc(var(--at-rail-width) + var(--at-gutter));
+  }
+
+  /* The lockup moves into the rail, where it sits above the progress meter
+     and doubles as the link home, so the nav's own copy would be a second
+     identical brand link on the same page. Scoped to the widths where the
+     rail is actually on screen: below that it is the only lockup there is. */
+  @media (width > 768px) {
+    body:has(.at-sidebar) .at-nav-brand {
+      display: none;
+    }
   }
 
   /* Below the theme's sidebar breakpoint the rail is hidden outright, so the

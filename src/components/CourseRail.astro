@@ -3,6 +3,7 @@ import { withBase } from "astro-theme-university/url";
 import "astro-theme-university/styles/sidebar.css";
 import "../styles/course-shell.css";
 import { getCourseModules, flattenModules } from "../lib/course-modules";
+import { siteConfig } from "../site-config";
 
 interface Props {
   /** Path of the page being rendered, for the `aria-current` mark. */
@@ -10,6 +11,8 @@ interface Props {
 }
 
 const { currentPath = Astro.url.pathname } = Astro.props;
+
+const { logo, logoDark, name } = siteConfig;
 
 const modules = await getCourseModules();
 const spine = flattenModules(modules);
@@ -19,7 +22,30 @@ const allIds = spine.map((item) => item.id).join(",");
 {/* A plain div, not <aside>: this renders inside <main>, where a
     complementary landmark would be nested. The labelled <nav> inside is the
     landmark, which is the right semantics for a module list anyway. */}
-<div class="at-sidebar course-rail" transition:animate="none">
+<div class="at-sidebar course-rail">
+  {
+    logo && (
+      <a class="rail-brand" href={import.meta.env.BASE_URL} aria-label={`${name} home`}>
+        <img
+          src={logo.src}
+          width={logo.width}
+          height={logo.height}
+          alt=""
+          class:list={["at-nav-logo", { "at-nav-logo--has-dark": !!logoDark }]}
+        />
+        {logoDark && (
+          <img
+            src={logoDark.src}
+            width={logoDark.width}
+            height={logoDark.height}
+            alt=""
+            class="at-nav-logo at-nav-logo--dark"
+          />
+        )}
+      </a>
+    )
+  }
+
   <section class="rail-progress" data-progress={allIds} aria-labelledby="rail-progress-title">
     <p class="rail-progress-title" id="rail-progress-title">Your progress</p>
     <div
@@ -35,7 +61,7 @@ const allIds = spine.map((item) => item.id).join(",");
     <p class="rail-progress-label" data-progress-label>{spine.length} items</p>
   </section>
 
-  <nav aria-label="Course modules">
+  <nav class="rail-nav" aria-label="Course modules">
     <ol class="rail-modules">
       {
         modules.map((module) => (
@@ -72,14 +98,35 @@ const allIds = spine.map((item) => item.id).join(",");
 </div>
 
 <style>
+  /* A column with one scrolling band: the brand, the progress meter and the
+     reset control hold still while the twelve modules scroll between them.
+     Putting the overflow on the whole rail instead scrolls the meter away,
+     which is the one thing that should always be legible. */
   .course-rail {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
+  .rail-nav {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     scrollbar-width: thin;
   }
 
-  /* The rail runs to the top of the window, past the nav, so its own head
-     clears the lockup rather than sitting level with it. */
-  .rail-progress {
-    margin-block-start: var(--at-spacing-lg);
+  .rail-brand {
+    display: block;
+    padding: 0 var(--at-spacing-sm) var(--at-spacing-md);
+  }
+
+  /* The horizontal lockup is wider than the rail, so it scales to fit rather
+     than keeping the nav's fixed 2.5rem height. */
+  .rail-brand :global(.at-nav-logo) {
+    inline-size: 100%;
+    max-inline-size: 12.5rem;
+    block-size: auto;
   }
 
   .rail-progress {

@@ -192,11 +192,15 @@ function paintGrades(marks: MarkMap): void {
 
 /** Bring the rail's current item into view without scrolling the page with it. */
 function revealCurrentInRail(): void {
-  const rail = document.querySelector<HTMLElement>(".course-rail");
-  const current = rail?.querySelector<HTMLElement>('a[aria-current="page"]');
-  if (!rail || !current) return;
-  const offset = current.offsetTop - rail.clientHeight / 2 + current.offsetHeight / 2;
-  rail.scrollTop = Math.max(0, offset);
+  const scroller = document.querySelector<HTMLElement>(".rail-nav");
+  const current = scroller?.querySelector<HTMLElement>('a[aria-current="page"]');
+  if (!scroller || !current) return;
+  // Measured rather than read off offsetTop: the scroll container is not the
+  // offset parent, so the two disagree.
+  const scrollerBox = scroller.getBoundingClientRect();
+  const itemBox = current.getBoundingClientRect();
+  const delta = itemBox.top - scrollerBox.top - scroller.clientHeight / 2 + itemBox.height / 2;
+  scroller.scrollTop = Math.max(0, scroller.scrollTop + delta);
 }
 
 function bind(): void {
