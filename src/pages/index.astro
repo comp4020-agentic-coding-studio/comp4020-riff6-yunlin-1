@@ -2,9 +2,22 @@
 import Card from "astro-theme-university/components/Card.astro";
 import CardGrid from "astro-theme-university/components/CardGrid.astro";
 import ContentLayout from "astro-theme-university/layouts/ContentLayout.astro";
+import { withBase } from "astro-theme-university/url";
 import heroImage from "../assets/images/hero-home.avif";
 import { courseMeta } from "../course-config";
+import { getCourseModules, flattenModules } from "../lib/course-modules";
 import { sessionLabels, siteConfig } from "../site-config";
+
+const spine = flattenModules(await getCourseModules());
+const allIds = spine.map((item) => item.id).join(",");
+const resumeSpine = JSON.stringify(
+  spine.map((item) => ({
+    id: item.id,
+    href: withBase(item.href),
+    title: item.title,
+    kind: item.kindLabel,
+  })),
+);
 ---
 
 <ContentLayout
@@ -17,6 +30,32 @@ import { sessionLabels, siteConfig } from "../site-config";
   <ul class="course-tags" aria-label="Course tags">
     {courseMeta.tags.map((tag) => <li>{tag}</li>)}
   </ul>
+
+  <section class="resume" data-resume-card aria-labelledby="resume-heading">
+    <h2 id="resume-heading">Continue the course</h2>
+    <div class="resume-meter" data-progress={allIds}>
+      <div
+        class="resume-bar"
+        data-progress-bar
+        role="progressbar"
+        aria-labelledby="resume-heading"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+      >
+      </div>
+      <p class="resume-count" data-progress-label>{spine.length} items across twelve weeks</p>
+    </div>
+    <p class="resume-lede" data-resume-lede>Start at the beginning</p>
+    <a class="resume-link" data-resume={resumeSpine} href={withBase("/lectures/week-01/")}>
+      <span data-resume-label>Lecture · Via negativa</span>
+    </a>
+    <p class="resume-note">
+      Every <a href={withBase("/modules/")}>module</a> can be ticked off as you finish it, and
+      the record stays in your browser — the one piece of student data this site refuses to
+      collect.
+    </p>
+  </section>
 
   <h2>What you will do</h2>
   <p>
@@ -42,6 +81,12 @@ import { sessionLabels, siteConfig } from "../site-config";
 
   <h2>Where to go next</h2>
   <CardGrid columns={2}>
+    <Card title="Modules" href="/modules/">
+      <p>The twelve weeks as units of work, with what you have finished marked off.</p>
+    </Card>
+    <Card title="Grades" href="/grades/">
+      <p>What each mark is worth, what letter it becomes, and what they add up to.</p>
+    </Card>
     <Card title={sessionLabels.plural} href="/sessions/">
       <p>The weekly discussion: what to bring, and what gets argued over.</p>
     </Card>
@@ -57,7 +102,81 @@ import { sessionLabels, siteConfig } from "../site-config";
   </CardGrid>
 </ContentLayout>
 
+<script>
+  import "../scripts/progress.ts";
+</script>
+
 <style>
+  .resume {
+    margin-block: var(--at-spacing-xl);
+    padding: var(--at-spacing-lg);
+    border: 1px solid var(--at-border);
+    border-inline-start: 4px solid var(--at-accent);
+    border-radius: var(--at-border-radius);
+    background: var(--at-bg-alt);
+  }
+
+  .resume h2 {
+    margin-block: 0 var(--at-spacing-sm);
+    font-size: var(--at-font-size-h3);
+  }
+
+  .resume-meter {
+    margin-block-end: var(--at-spacing-md);
+  }
+
+  .resume-bar {
+    height: 0.6rem;
+    border-radius: 999px;
+    background: var(--at-accent-soft);
+    overflow: hidden;
+  }
+
+  .resume-bar::before {
+    content: "";
+    display: block;
+    height: 100%;
+    width: var(--pct, 0%);
+    background: var(--at-accent);
+    border-radius: inherit;
+    transition: width 0.25s ease;
+  }
+
+  .resume-count {
+    margin-block: var(--at-spacing-xs) 0;
+    font-size: var(--at-font-size-sm);
+    color: var(--at-text-secondary);
+  }
+
+  .resume-lede {
+    margin-block: 0 var(--at-spacing-xs);
+    font-size: var(--at-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-muted);
+  }
+
+  .resume-link {
+    display: inline-block;
+    padding: 0.65rem 1.3rem;
+    border-radius: 999px;
+    background: var(--at-accent);
+    color: var(--at-on-accent);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .resume-link:hover {
+    background: var(--at-accent-hover);
+    color: var(--at-on-accent);
+  }
+
+  .resume-note {
+    margin-block: var(--at-spacing-md) 0;
+    font-size: var(--at-font-size-sm);
+    color: var(--at-text-secondary);
+  }
+
   .course-tags {
     display: flex;
     flex-wrap: wrap;

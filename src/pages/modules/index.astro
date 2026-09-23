@@ -1,0 +1,257 @@
+---
+import { withBase } from "astro-theme-university/url";
+import CourseLayout from "../../layouts/CourseLayout.astro";
+import { getCourseModules, flattenModules } from "../../lib/course-modules";
+import { formatCourseDate } from "../../lib/dates";
+
+const modules = await getCourseModules();
+const spine = flattenModules(modules);
+const allIds = spine.map((item) => item.id).join(",");
+const resumeSpine = JSON.stringify(
+  spine.map((item) => ({
+    id: item.id,
+    href: withBase(item.href),
+    title: item.title,
+    kind: item.kindLabel,
+  })),
+);
+---
+
+<CourseLayout
+  title="Modules"
+  description="Twelve weeks, each one a module: the lecture that makes the week's case, the seminar that argues with it, and any assessment that falls due. Tick items off as you go — the record stays in your browser."
+>
+  <section class="resume" data-resume-card aria-labelledby="resume-heading">
+    <h2 id="resume-heading">Where you are</h2>
+    <div class="resume-meter" data-progress={allIds}>
+      <div
+        class="resume-bar"
+        data-progress-bar
+        role="progressbar"
+        aria-labelledby="resume-heading"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+      >
+      </div>
+      <p class="resume-count" data-progress-label>{spine.length} items</p>
+    </div>
+    <p class="resume-lede" data-resume-lede>Start at the beginning</p>
+    <a class="resume-link" data-resume={resumeSpine} href={withBase("/lectures/week-01/")}>
+      <span data-resume-label>Lecture · Via negativa</span>
+    </a>
+    <p class="resume-note">
+      Progress is kept in this browser only. Nothing is sent anywhere, and no account stands
+      between a reader and the syllabus — the one omission this site makes on its own behalf.
+    </p>
+  </section>
+
+  <ol class="modules">
+    {
+      modules.map((module) => (
+        <li class="module">
+          <div class="module-head">
+            <p class="module-week">Week {module.week}</p>
+            <h2 class="module-title">{module.title}</h2>
+            <p class="module-desc">{module.description}</p>
+          </div>
+          <ul class="module-items">
+            {module.items.map((item) => (
+              <li class="module-item" data-item={item.id} data-done="false">
+                <span class="module-dot" aria-hidden="true" />
+                <div class="module-item-body">
+                  <a class="module-item-link" href={withBase(item.href)}>
+                    {item.title}
+                  </a>
+                  <p class="module-item-meta">
+                    {item.kindLabel} ·{" "}
+                    {item.kind === "assessment"
+                      ? `due ${formatCourseDate(item.date)} · ${item.weight}%`
+                      : formatCourseDate(item.date)}
+                  </p>
+                  <p class="module-item-desc">{item.description}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </li>
+      ))
+    }
+  </ol>
+</CourseLayout>
+
+<style>
+  .resume {
+    margin-block: var(--at-spacing-xl);
+    padding: var(--at-spacing-lg);
+    border: 1px solid var(--at-border);
+    border-inline-start: 4px solid var(--at-accent);
+    border-radius: var(--at-border-radius);
+    background: var(--at-bg-alt);
+  }
+
+  .resume h2 {
+    margin-block: 0 var(--at-spacing-sm);
+    font-size: var(--at-font-size-h3);
+  }
+
+  .resume-meter {
+    margin-block-end: var(--at-spacing-md);
+  }
+
+  .resume-bar {
+    height: 0.6rem;
+    border-radius: 999px;
+    background: var(--at-accent-soft);
+    overflow: hidden;
+  }
+
+  .resume-bar::before {
+    content: "";
+    display: block;
+    height: 100%;
+    width: var(--pct, 0%);
+    background: var(--at-accent);
+    border-radius: inherit;
+    transition: width 0.25s ease;
+  }
+
+  .resume-count {
+    margin-block: var(--at-spacing-xs) 0;
+    font-size: var(--at-font-size-sm);
+    color: var(--at-text-secondary);
+  }
+
+  .resume-lede {
+    margin-block: 0 var(--at-spacing-xs);
+    font-size: var(--at-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-muted);
+  }
+
+  .resume-link {
+    display: inline-block;
+    padding: 0.65rem 1.3rem;
+    border-radius: 999px;
+    background: var(--at-accent);
+    color: var(--at-on-accent);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .resume-link:hover {
+    background: var(--at-accent-hover);
+    color: var(--at-on-accent);
+  }
+
+  .resume-note {
+    margin-block: var(--at-spacing-md) 0;
+    font-size: var(--at-font-size-sm);
+    color: var(--at-text-secondary);
+  }
+
+  .modules {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .module {
+    margin-block-end: var(--at-spacing-lg);
+    border: 1px solid var(--at-border);
+    border-radius: var(--at-border-radius);
+    overflow: hidden;
+  }
+
+  .module-head {
+    padding: var(--at-spacing-md) var(--at-spacing-lg);
+    background: var(--at-bg-alt);
+    border-block-end: 1px solid var(--at-divider);
+  }
+
+  .module-week {
+    margin: 0;
+    font-size: var(--at-font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--at-text-muted);
+  }
+
+  .module-title {
+    margin-block: 0.1rem 0.35rem;
+    font-size: var(--at-font-size-h3);
+  }
+
+  .module-desc {
+    margin: 0;
+    font-size: var(--at-font-size-sm);
+    color: var(--at-text-secondary);
+  }
+
+  .module-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .module-item {
+    display: flex;
+    gap: var(--at-spacing-md);
+    padding: var(--at-spacing-md) var(--at-spacing-lg);
+  }
+
+  .module-item + .module-item {
+    border-block-start: 1px solid var(--at-divider);
+  }
+
+  .module-dot {
+    flex: none;
+    inline-size: 1.15rem;
+    block-size: 1.15rem;
+    margin-block-start: 0.2rem;
+    border: 1.5px solid var(--at-border);
+    border-radius: 999px;
+  }
+
+  .module-item[data-done="true"] .module-dot {
+    position: relative;
+    border-color: var(--at-accent);
+    background: var(--at-accent);
+  }
+
+  .module-item[data-done="true"] .module-dot::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0.33rem;
+    inset-block-start: 0.12rem;
+    inline-size: 0.32rem;
+    block-size: 0.62rem;
+    border: solid var(--at-on-accent);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .module-item-body {
+    min-width: 0;
+  }
+
+  .module-item-link {
+    font-weight: 600;
+  }
+
+  .module-item-meta {
+    margin-block: 0.15rem 0.3rem;
+    font-size: var(--at-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--at-text-muted);
+  }
+
+  .module-item-desc {
+    margin: 0;
+    font-size: var(--at-font-size-sm);
+    color: var(--at-text-secondary);
+  }
+</style>
